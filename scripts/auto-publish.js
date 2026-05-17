@@ -101,13 +101,13 @@ function updateGradleVersion(status) {
 }
 
 function runReleaseBuild() {
-	const result = spawnSync(gradleWrapper, ["assembleRelease"], {
+	const result = spawnSync(gradleWrapper, ["assembleDebug"], {
 		cwd: rootDir,
 		shell: process.platform === "win32",
 		stdio: "inherit"
 	});
 	if (result.status !== 0) {
-		throw new Error(`Release build failed with exit code ${result.status}`)
+		throw new Error(`Debug build failed with exit code ${result.status}`)
 	}
 }
 

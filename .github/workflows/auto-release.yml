@@ -52,7 +52,7 @@ jobs:
           VERSION_CODE: ${{ steps.auto_release.outputs.version_code }}
         run: |
           RELEASE_APK="AIEnglishSceneSpeak-${VERSION_NAME}.apk"
-          cp app/build/outputs/apk/release/*.apk "$RELEASE_APK"
+          cp app/build/outputs/apk/debug/*.apk "$RELEASE_APK"
           git tag "$TAG_NAME"
           git push origin "$TAG_NAME"
           gh release create "$TAG_NAME" "$RELEASE_APK" --title "$TAG_NAME" --notes "Version $VERSION_NAME"
