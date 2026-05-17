@@ -1,7 +1,7 @@
 {
-	"needsUpdate": true,
+	"needsUpdate": false,
 	"majorUp": false,
 	"minorUp": false,
-	"useVersion": "1.0.0",
-	"useVersionCode": 1
+	"useVersion": null,
+	"useVersionCode": null
 }
