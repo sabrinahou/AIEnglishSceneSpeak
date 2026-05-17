@@ -11,7 +11,8 @@ const resetStatus = {
 	needsUpdate: false,
 	majorUp: false,
 	minorUp: false,
-	useVersion: null
+	useVersion: null,
+	useVersionCode: null
 };
 
 function readJson(filePath) {
@@ -67,6 +68,19 @@ function resolveNextVersion(currentVersion, status) {
 	return nextVersion
 }
 
+function resolveNextVersionCode(currentCode, status) {
+	if (status.useVersionCode !== null && status.useVersionCode !== undefined) {
+		if (!Number.isInteger(status.useVersionCode) || status.useVersionCode < 1) {
+			throw new Error("useVersionCode must be a positive integer when provided.")
+		}
+		console.log(`versionCode set manually to ${status.useVersionCode}`);
+		return status.useVersionCode
+	}
+	const nextCode = currentCode + 1;
+	console.log(`versionCode bumped to ${nextCode}`);
+	return nextCode
+}
+
 function updateGradleVersion(status) {
 	const source = fs.readFileSync(gradlePath, "utf8");
 	const versionCodeMatch = source.match(/versionCode\s*=\s*(\d+)/);
@@ -76,11 +90,14 @@ function updateGradleVersion(status) {
 	}
 	const currentCode = Number(versionCodeMatch[1]);
 	const currentName = versionNameMatch[1];
-	const nextCode = currentCode + 1;
+	const nextCode = resolveNextVersionCode(currentCode, status);
 	const nextName = resolveNextVersion(currentName, status);
 	const updated = source.replace(/versionCode\s*=\s*\d+/, `versionCode = ${nextCode}`).replace(/versionName\s*=\s*"[^"]+"/, `versionName = "${nextName}"`);
 	fs.writeFileSync(gradlePath, updated);
-	console.log(`versionCode bumped to ${nextCode}`)
+	return {
+		versionCode: nextCode,
+		versionName: nextName
+	}
 }
 
 function runReleaseBuild() {
@@ -101,10 +118,13 @@ function main() {
 		writeGitHubOutput("released", "false");
 		return
 	}
-	updateGradleVersion(status);
+	const version = updateGradleVersion(status);
 	runReleaseBuild();
 	resetStatusFile();
 	writeGitHubOutput("released", "true");
+	writeGitHubOutput("version_code", version.versionCode);
+	writeGitHubOutput("version_name", version.versionName);
+	writeGitHubOutput("tag_name", `v${version.versionName}`);
 	console.log("Release build completed.")
 }
 main();

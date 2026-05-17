@@ -43,10 +43,16 @@ jobs:
           git diff --cached --quiet || git commit -m "chore: auto publish version"
           git push
 
-      - name: Upload release APK
-        if: steps.auto_release.outputs.released == 'true'
-        uses: actions/upload-artifact@v4
-        with:
-          name: release-apk
-          path: app/build/outputs/apk/release/*.apk
-          if-no-files-found: ignore
+      - name: Create GitHub release
+        if: steps.auto_release.outputs.released == 'true' && github.event_name != 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG_NAME: ${{ steps.auto_release.outputs.tag_name }}
+          VERSION_NAME: ${{ steps.auto_release.outputs.version_name }}
+          VERSION_CODE: ${{ steps.auto_release.outputs.version_code }}
+        run: |
+          RELEASE_APK="AIEnglishSceneSpeak-${VERSION_NAME}.apk"
+          cp app/build/outputs/apk/release/*.apk "$RELEASE_APK"
+          git tag "$TAG_NAME"
+          git push origin "$TAG_NAME"
+          gh release create "$TAG_NAME" "$RELEASE_APK" --title "$TAG_NAME" --notes "Version $VERSION_NAME"
